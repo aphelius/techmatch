@@ -1,0 +1,10 @@
+target/
+.idea/
+*.iml
+.mvn/
+logs/
+*.log
+out/
+.m2/
+frontend/
+TechMatch_开发任务清单与代码骨架.md
