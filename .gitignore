@@ -8,6 +8,5 @@ out/
 .m2/
 docs/
 TechMatch_开发任务清单与代码骨架.md
-*.png
 node_modules/
 frontend/dist/

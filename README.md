@@ -286,34 +286,6 @@ LLM_EMBEDDING_MODEL
 
 ---
 
-## 示例截图占位
-
-你可以在仓库中新增 `docs/images/` 目录后，把截图替换到这里：
-
-```md
-![Dashboard](docs/images/dashboard.png)
-![Timeline](docs/images/timeline.png)
-![Report](docs/images/report.png)
-```
-
-如果你愿意，我也可以下一步继续帮你做两件事：
-
-- 直接为 README 生成一套项目截图占位图
-- 补一版英文 README
-
----
-
-## 开发状态
-
-当前项目更适合作为：
-
-- 毕设 / 课程设计
-- 招聘智能化方向作品集
-- Spring Boot + AI + Agent 工作流实践项目
-- pgvector / RAG / 可解释评分系统 Demo
-
----
-
 ## Roadmap
 
 - [x] 简历解析与向量检索
@@ -329,8 +301,4 @@ LLM_EMBEDDING_MODEL
 - [ ] Docker 一键全栈启动优化
 
 ---
-
-## License
-
-如需开源发布，建议补充 `MIT` 或 `Apache-2.0` 许可证文件。
 
