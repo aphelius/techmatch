@@ -6,5 +6,8 @@ logs/
 *.log
 out/
 .m2/
-frontend/
+docs/
 TechMatch_开发任务清单与代码骨架.md
+*.png
+node_modules/
+frontend/dist/
