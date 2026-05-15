@@ -486,6 +486,80 @@ Response `data`:
 }
 ```
 
+### `GET /api/matches/{taskId}/questions`
+
+Headers:
+
+```http
+Authorization: Bearer <accessToken>
+```
+
+Response `data`:
+
+```json
+[
+  {
+    "questionId": 501,
+    "type": "TECH_BASIC",
+    "question": "请结合你最近一次使用 Redis 的经历，说明核心原理、排障思路，以及你如何把它用在实际项目里。",
+    "target": "Redis",
+    "difficulty": "中等",
+    "sourceRisk": "技术栈核验",
+    "feedback": {
+      "feedbackId": 801,
+      "questionId": 501,
+      "score": 4,
+      "feedbackType": "证据充分",
+      "notes": "能够解释缓存一致性，但对哨兵切换细节还可以继续追问。",
+      "confidenceDelta": 0.075,
+      "createTime": "2026-05-15T10:20:00",
+      "updateTime": "2026-05-15T10:20:00"
+    }
+  }
+]
+```
+
+### `POST /api/matches/{taskId}/feedback`
+
+Headers:
+
+```http
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+Request:
+
+```json
+{
+  "questionId": 501,
+  "score": 4,
+  "feedbackType": "证据充分",
+  "notes": "能够解释缓存一致性，但对哨兵切换细节还可以继续追问。"
+}
+```
+
+Response `data`:
+
+```json
+{
+  "taskId": 301,
+  "questionId": 501,
+  "feedbackId": 801,
+  "confidence": 0.8125,
+  "matchLevel": "强匹配",
+  "recommendation": "建议优先推进后续面试",
+  "feedbackSummary": {
+    "feedbackCount": 3,
+    "averageScore": 4.33,
+    "confidenceDelta": 0.0525,
+    "adjustedMatchLevel": "强匹配",
+    "adjustedRecommendation": "建议优先推进后续面试",
+    "note": "面试反馈整体积极，提升了候选人与岗位匹配结论的可信度"
+  }
+}
+```
+
 ### `GET /api/matches/{taskId}/graph`
 
 Headers:

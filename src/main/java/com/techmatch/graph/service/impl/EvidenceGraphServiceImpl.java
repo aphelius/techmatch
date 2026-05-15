@@ -19,6 +19,8 @@ import com.techmatch.graph.entity.EvidenceNodeEntity;
 import com.techmatch.graph.mapper.EvidenceEdgeMapper;
 import com.techmatch.graph.mapper.EvidenceNodeMapper;
 import com.techmatch.graph.service.EvidenceGraphService;
+import com.techmatch.interview.entity.InterviewFeedbackEntity;
+import com.techmatch.interview.entity.InterviewQuestionEntity;
 import com.techmatch.task.service.AgentTaskService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -114,14 +116,14 @@ public class EvidenceGraphServiceImpl implements EvidenceGraphService {
                     taskId,
                     userId,
                     "INTERVIEW_QUESTION",
-                    "question:" + question.getTarget() + ":" + question.getQuestion(),
+                    questionNodeKey(question.getQuestionId(), question.getTarget(), question.getQuestion()),
                     question.getTarget(),
                     question.getQuestion(),
                     question.getDifficulty(),
-                    Map.of("type", question.getType())
+                    Map.of("type", question.getType(), "sourceRisk", question.getSourceRisk())
             );
 
-            EvidenceNodeEntity riskNode = findRelatedRiskNode(riskNodes, question.getTarget());
+            EvidenceNodeEntity riskNode = findRelatedRiskNode(riskNodes, question.getTarget(), question.getSourceRisk());
             if (riskNode != null) {
                 createEdge(taskId, riskNode.getId(), questionNode.getId(), "GENERATES_QUESTION", Map.of("type", question.getType()));
                 continue;
@@ -132,6 +134,60 @@ public class EvidenceGraphServiceImpl implements EvidenceGraphService {
                 createEdge(taskId, jdNode.getId(), questionNode.getId(), "GENERATES_QUESTION", Map.of("type", question.getType()));
             }
         }
+    }
+
+    @Override
+    @Transactional
+    public void appendFeedback(Long taskId, Long userId, InterviewQuestionEntity question, InterviewFeedbackEntity feedback) {
+        agentTaskService.requireOwnedTask(taskId, userId);
+
+        String questionNodeKey = questionNodeKey(question.getId(), question.getTarget(), question.getQuestionText());
+        EvidenceNodeEntity questionNode = evidenceNodeMapper.selectOne(new LambdaQueryWrapper<EvidenceNodeEntity>()
+                .eq(EvidenceNodeEntity::getTaskId, taskId)
+                .eq(EvidenceNodeEntity::getNodeType, "INTERVIEW_QUESTION")
+                .eq(EvidenceNodeEntity::getNodeKey, questionNodeKey)
+                .last("limit 1"));
+        if (questionNode == null) {
+            questionNode = createNode(
+                    taskId,
+                    userId,
+                    "INTERVIEW_QUESTION",
+                    questionNodeKey,
+                    question.getTarget(),
+                    question.getQuestionText(),
+                    question.getDifficulty(),
+                    Map.of("type", question.getQuestionType(), "sourceRisk", question.getSourceRisk())
+            );
+        }
+
+        String feedbackNodeKey = "feedback:" + feedback.getId();
+        EvidenceNodeEntity existingFeedbackNode = evidenceNodeMapper.selectOne(new LambdaQueryWrapper<EvidenceNodeEntity>()
+                .eq(EvidenceNodeEntity::getTaskId, taskId)
+                .eq(EvidenceNodeEntity::getNodeType, "INTERVIEW_FEEDBACK")
+                .eq(EvidenceNodeEntity::getNodeKey, feedbackNodeKey)
+                .last("limit 1"));
+        if (existingFeedbackNode != null) {
+            Long questionNodeId = questionNode.getId();
+            Long feedbackNodeId = existingFeedbackNode.getId();
+            evidenceEdgeMapper.delete(new LambdaQueryWrapper<EvidenceEdgeEntity>()
+                    .eq(EvidenceEdgeEntity::getTaskId, taskId)
+                    .and(wrapper -> wrapper.eq(EvidenceEdgeEntity::getFromNodeId, questionNodeId)
+                            .or()
+                            .eq(EvidenceEdgeEntity::getToNodeId, feedbackNodeId)));
+            evidenceNodeMapper.deleteById(feedbackNodeId);
+        }
+
+        EvidenceNodeEntity feedbackNode = createNode(
+                taskId,
+                userId,
+                "INTERVIEW_FEEDBACK",
+                feedbackNodeKey,
+                "反馈评分 %s/5".formatted(feedback.getScore()),
+                buildFeedbackContent(feedback),
+                feedback.getFeedbackType(),
+                Map.of("score", feedback.getScore(), "confidenceDelta", feedback.getConfidenceDelta())
+        );
+        createEdge(taskId, questionNode.getId(), feedbackNode.getId(), "ANSWERED_BY", Map.of("score", feedback.getScore()));
     }
 
     @Override
@@ -170,6 +226,7 @@ public class EvidenceGraphServiceImpl implements EvidenceGraphService {
             String status = null;
             String risk = null;
             String question = null;
+            String feedback = null;
 
             for (EvidenceEdgeEntity edge : edges) {
                 if (!Objects.equals(edge.getFromNodeId(), jdNode.getId())) {
@@ -190,12 +247,19 @@ public class EvidenceGraphServiceImpl implements EvidenceGraphService {
                         if (status == null) {
                             status = "MISSING_EVIDENCE".equals(edge.getEdgeType()) ? "缺失证据" : "存在风险";
                         }
-                        String linkedQuestion = findQuestionForRisk(toNode.getId(), edges, nodeMap);
-                        if (linkedQuestion != null) {
-                            question = linkedQuestion;
+                        Long questionNodeId = findQuestionNodeIdForRisk(toNode.getId(), edges);
+                        if (questionNodeId != null) {
+                            EvidenceNodeEntity questionNode = nodeMap.get(questionNodeId);
+                            if (questionNode != null) {
+                                question = questionNode.getContent();
+                                feedback = findFeedbackForQuestion(questionNodeId, edges, nodeMap);
+                            }
                         }
                     }
-                    case "GENERATES_QUESTION" -> question = toNode.getContent();
+                    case "GENERATES_QUESTION" -> {
+                        question = toNode.getContent();
+                        feedback = findFeedbackForQuestion(toNode.getId(), edges, nodeMap);
+                    }
                     default -> {
                     }
                 }
@@ -207,18 +271,28 @@ public class EvidenceGraphServiceImpl implements EvidenceGraphService {
                     .status(status == null ? "待核验" : status)
                     .risk(risk)
                     .question(question)
+                    .feedback(feedback)
                     .build());
         }
 
         return chains;
     }
 
-    private String findQuestionForRisk(Long riskNodeId,
-                                       List<EvidenceEdgeEntity> edges,
-                                       Map<Long, EvidenceNodeEntity> nodeMap) {
+    private Long findQuestionNodeIdForRisk(Long riskNodeId, List<EvidenceEdgeEntity> edges) {
         return edges.stream()
                 .filter(edge -> Objects.equals(edge.getFromNodeId(), riskNodeId))
                 .filter(edge -> "GENERATES_QUESTION".equals(edge.getEdgeType()))
+                .map(EvidenceEdgeEntity::getToNodeId)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private String findFeedbackForQuestion(Long questionNodeId,
+                                           List<EvidenceEdgeEntity> edges,
+                                           Map<Long, EvidenceNodeEntity> nodeMap) {
+        return edges.stream()
+                .filter(edge -> Objects.equals(edge.getFromNodeId(), questionNodeId))
+                .filter(edge -> "ANSWERED_BY".equals(edge.getEdgeType()))
                 .map(edge -> nodeMap.get(edge.getToNodeId()))
                 .filter(Objects::nonNull)
                 .map(EvidenceNodeEntity::getContent)
@@ -226,7 +300,16 @@ public class EvidenceGraphServiceImpl implements EvidenceGraphService {
                 .orElse(null);
     }
 
-    private EvidenceNodeEntity findRelatedRiskNode(Map<String, EvidenceNodeEntity> riskNodes, String target) {
+    private EvidenceNodeEntity findRelatedRiskNode(Map<String, EvidenceNodeEntity> riskNodes, String target, String sourceRisk) {
+        if (StringUtils.hasText(sourceRisk)) {
+            EvidenceNodeEntity sourceRiskNode = riskNodes.values().stream()
+                    .filter(node -> sourceRisk.equals(node.getTitle()))
+                    .findFirst()
+                    .orElse(null);
+            if (sourceRiskNode != null) {
+                return sourceRiskNode;
+            }
+        }
         return riskNodes.values().stream()
                 .filter(node -> StringUtils.hasText(target) && (target.equals(node.getTitle()) || target.equals(node.getNodeKey().replace("risk:", ""))))
                 .findFirst()
@@ -304,5 +387,18 @@ public class EvidenceGraphServiceImpl implements EvidenceGraphService {
         } catch (JsonProcessingException exception) {
             throw new BizException(ErrorCode.INTERNAL_ERROR.getCode(), exception.getMessage());
         }
+    }
+
+    private String questionNodeKey(Long questionId, String target, String questionText) {
+        if (questionId != null) {
+            return "question:" + questionId;
+        }
+        return "question:" + target + ":" + questionText;
+    }
+
+    private String buildFeedbackContent(InterviewFeedbackEntity feedback) {
+        String notes = StringUtils.hasText(feedback.getNotes()) ? "；备注：" + feedback.getNotes() : "";
+        return "反馈类型：%s，评分：%s/5，置信度修正：%s%s"
+                .formatted(feedback.getFeedbackType(), feedback.getScore(), feedback.getConfidenceDelta(), notes);
     }
 }

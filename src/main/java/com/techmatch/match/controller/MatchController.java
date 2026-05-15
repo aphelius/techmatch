@@ -3,8 +3,11 @@ package com.techmatch.match.controller;
 import com.techmatch.common.response.ApiResponse;
 import com.techmatch.match.dto.CreateMatchRequest;
 import com.techmatch.match.dto.CreateMatchResponse;
+import com.techmatch.match.dto.InterviewQuestionResponse;
 import com.techmatch.match.dto.MatchEvidenceGraphResponse;
 import com.techmatch.match.dto.MatchReportResponse;
+import com.techmatch.match.dto.SubmitInterviewFeedbackRequest;
+import com.techmatch.match.dto.SubmitInterviewFeedbackResponse;
 import com.techmatch.match.service.MatchService;
 import com.techmatch.task.dto.AgentTaskResponse;
 import com.techmatch.task.dto.AgentTimelineEventResponse;
@@ -53,6 +56,19 @@ public class MatchController {
     @Operation(summary = "Get match report", description = "Query current user's final match report")
     public ApiResponse<MatchReportResponse> getReport(@PathVariable Long taskId) {
         return ApiResponse.success(matchService.getReport(taskId));
+    }
+
+    @GetMapping("/{taskId}/questions")
+    @Operation(summary = "Get interview questions", description = "Query current user's interview validation questions and latest feedback")
+    public ApiResponse<List<InterviewQuestionResponse>> getQuestions(@PathVariable Long taskId) {
+        return ApiResponse.success(matchService.getQuestions(taskId));
+    }
+
+    @PostMapping("/{taskId}/feedback")
+    @Operation(summary = "Submit interview feedback", description = "Submit interviewer feedback and write it back to confidence and match level")
+    public ApiResponse<SubmitInterviewFeedbackResponse> submitFeedback(@PathVariable Long taskId,
+                                                                       @RequestBody @Valid SubmitInterviewFeedbackRequest request) {
+        return ApiResponse.success(matchService.submitFeedback(taskId, request));
     }
 
     @GetMapping("/{taskId}/graph")

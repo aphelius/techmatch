@@ -9,12 +9,17 @@ import com.techmatch.common.enums.ErrorCode;
 import com.techmatch.common.exception.BizException;
 import com.techmatch.graph.dto.EvidenceGraphResponse;
 import com.techmatch.graph.service.EvidenceGraphService;
+import com.techmatch.interview.service.FeedbackService;
+import com.techmatch.interview.service.InterviewService;
 import com.techmatch.job.entity.JobDescriptionEntity;
 import com.techmatch.job.mapper.JobDescriptionMapper;
 import com.techmatch.match.dto.CreateMatchRequest;
 import com.techmatch.match.dto.CreateMatchResponse;
+import com.techmatch.match.dto.InterviewQuestionResponse;
 import com.techmatch.match.dto.MatchEvidenceGraphResponse;
 import com.techmatch.match.dto.MatchReportResponse;
+import com.techmatch.match.dto.SubmitInterviewFeedbackRequest;
+import com.techmatch.match.dto.SubmitInterviewFeedbackResponse;
 import com.techmatch.resume.entity.ResumeEntity;
 import com.techmatch.resume.mapper.ResumeMapper;
 import com.techmatch.task.dto.AgentTaskResponse;
@@ -40,6 +45,8 @@ public class MatchService {
     private final AgentTimelineService agentTimelineService;
     private final MatchAgentOrchestrator matchAgentOrchestrator;
     private final EvidenceGraphService evidenceGraphService;
+    private final InterviewService interviewService;
+    private final FeedbackService feedbackService;
 
     public CreateMatchResponse createMatchTask(CreateMatchRequest request) {
         Long userId = loginUserContext.getCurrentUserId();
@@ -93,13 +100,28 @@ public class MatchService {
                 .confidence(report.getConfidence())
                 .matchLevel(report.getMatchLevel())
                 .recommendation(report.getRecommendation())
+                .baseConfidence(report.getBaseConfidence())
+                .baseMatchLevel(report.getBaseMatchLevel())
+                .baseRecommendation(report.getBaseRecommendation())
                 .summary(report.getSummary())
                 .dimensionScores(report.getDimensionScores())
+                .baseDimensionScores(report.getBaseDimensionScores())
                 .strengths(report.getStrengths())
                 .risks(report.getRisks())
                 .suggestions(report.getSuggestions())
                 .interviewQuestions(report.getInterviewQuestions())
+                .feedbackSummary(report.getFeedbackSummary())
                 .build();
+    }
+
+    public List<InterviewQuestionResponse> getQuestions(Long taskId) {
+        Long userId = loginUserContext.getCurrentUserId();
+        return interviewService.listQuestions(taskId, userId);
+    }
+
+    public SubmitInterviewFeedbackResponse submitFeedback(Long taskId, SubmitInterviewFeedbackRequest request) {
+        Long userId = loginUserContext.getCurrentUserId();
+        return feedbackService.submit(taskId, userId, request);
     }
 
     public MatchEvidenceGraphResponse getEvidenceGraph(Long taskId) {

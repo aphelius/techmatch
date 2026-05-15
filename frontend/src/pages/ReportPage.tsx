@@ -14,7 +14,7 @@ const dimensionLabelMap: Record<string, string> = {
 
 function reportTone(matchLevel: string) {
   if (matchLevel.includes("强")) return "success" as const;
-  if (matchLevel.includes("弱")) return "warning" as const;
+  if (matchLevel.includes("中")) return "warning" as const;
   return "info" as const;
 }
 
@@ -55,10 +55,7 @@ export function ReportPage() {
     void loadReport();
   }, [taskId]);
 
-  const reportSubtitle = useMemo(() => {
-    if (!report) return "";
-    return report.jobTitle;
-  }, [report]);
+  const reportSubtitle = useMemo(() => report?.jobTitle ?? "", [report]);
 
   return (
     <div className="content-grid report-layout">
@@ -67,7 +64,7 @@ export function ReportPage() {
 
         {!taskId ? (
           <SectionCard title="匹配报告" subtitle="请先创建匹配任务">
-            <EmptyState title="缺少任务编号" description="请从匹配分析页创建任务，或在 URL 中带上 `taskId` 后再查看报告。" />
+            <EmptyState title="缺少任务编号" description="请从匹配分析页创建任务，或在 URL 中带上 taskId 后再查看报告。" />
           </SectionCard>
         ) : loading ? (
           <SectionCard title="匹配报告" subtitle="正在加载后端真实报告">
@@ -80,7 +77,7 @@ export function ReportPage() {
               description={
                 task?.status === "FAILED"
                   ? task.errorMessage || "任务执行过程中出现错误，请查看时间线定位失败节点。"
-                  : "当前任务还没完成，报告接口暂时没有返回结果。"
+                  : "当前任务还没有完成，报告接口暂时没有返回结果。"
               }
             />
             {task ? (
@@ -102,11 +99,11 @@ export function ReportPage() {
                 <div className="stack-sm align-end">
                   <Badge tone={reportTone(report.matchLevel)}>{report.matchLevel}</Badge>
                   <div className="mini-panel">
-                    <strong>置信度</strong>
+                    <strong>当前置信度</strong>
                     <span>{report.confidence}</span>
                   </div>
                   <div className="mini-panel">
-                    <strong>建议结论</strong>
+                    <strong>当前建议</strong>
                     <span>{report.recommendation}</span>
                   </div>
                 </div>
@@ -129,7 +126,7 @@ export function ReportPage() {
                         style={{ width: `${(Number(item.score) / Number(item.maxScore || 1)) * 100}%` }}
                       />
                     </div>
-                    <div className="table-meta">{item.reason}</div>
+                    <div className="table-meta">置信度 {item.confidence} · {item.reason}</div>
                   </div>
                 ))}
               </div>
@@ -155,7 +152,7 @@ export function ReportPage() {
       </div>
 
       <div className="stack-lg">
-        <SectionCard title="报告摘要" subtitle="当前任务的关键结论快照">
+        <SectionCard title="报告摘要" subtitle="当前任务的关键信息快照">
           {report ? (
             <div className="stack-md">
               <div className="mini-panel">
@@ -168,17 +165,29 @@ export function ReportPage() {
               </div>
               <div className="mini-panel">
                 <strong>置信度</strong>
-                <span>{report.confidence}</span>
+                <span>
+                  {report.confidence}
+                  {report.baseConfidence ? `（基线 ${report.baseConfidence}）` : ""}
+                </span>
               </div>
               <div className="mini-panel">
                 <strong>摘要</strong>
                 <span>{report.summary}</span>
               </div>
+              {report.feedbackSummary ? (
+                <div className="mini-panel">
+                  <strong>反馈回流</strong>
+                  <span>{report.feedbackSummary.note}</span>
+                </div>
+              ) : null}
               <button className="secondary-button" type="button" onClick={() => navigate(`/timeline?taskId=${taskId}`)}>
                 查看 Agent 时间线
               </button>
               <button className="secondary-button" type="button" onClick={() => navigate(`/evidence-graph?taskId=${taskId}`)}>
                 查看证据图谱
+              </button>
+              <button className="secondary-button" type="button" onClick={() => navigate(`/feedback?taskId=${taskId}`)}>
+                进入面试反馈
               </button>
             </div>
           ) : (
@@ -198,11 +207,11 @@ export function ReportPage() {
           )}
         </SectionCard>
 
-        <SectionCard title="面试验证问题" subtitle="由缺失证据和风险点自动转化而来">
+        <SectionCard title="面试验证问题" subtitle="由风险点和缺失证据自动转化而来">
           {report && report.interviewQuestions.length > 0 ? (
             <ul className="feature-list">
               {report.interviewQuestions.map((item) => (
-                <li key={`${item.type}-${item.target}-${item.question}`}>
+                <li key={`${item.questionId || item.question}-${item.type}`}>
                   [{item.type}] {item.question}
                 </li>
               ))}

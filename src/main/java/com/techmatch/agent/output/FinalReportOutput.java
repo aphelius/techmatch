@@ -18,10 +18,15 @@ public class FinalReportOutput {
     BigDecimal confidence;
     String matchLevel;
     String recommendation;
+    BigDecimal baseConfidence;
+    String baseMatchLevel;
+    String baseRecommendation;
     String summary;
     List<DimensionScore> dimensionScores;
+    List<DimensionScore> baseDimensionScores;
     List<String> strengths;
     List<String> risks;
     List<String> suggestions;
     List<InterviewQuestionOutput> interviewQuestions;
+    InterviewFeedbackSummary feedbackSummary;
 }

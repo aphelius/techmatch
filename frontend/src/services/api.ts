@@ -4,8 +4,10 @@ import type {
   AuthTokenResponse,
   AuthUser,
   InfraStatus,
+  InterviewQuestionItem,
   MatchEvidenceGraph,
   MatchCreateResult,
+  SubmitInterviewFeedbackResult,
   MatchReport,
   MatchTask,
   MatchTimelineEvent,
@@ -129,6 +131,21 @@ export const api = {
   },
   getMatchReport(taskId: number) {
     return request<MatchReport>(`/api/matches/${taskId}/report`);
+  },
+  getMatchQuestions(taskId: number) {
+    return request<InterviewQuestionItem[]>(`/api/matches/${taskId}/questions`);
+  },
+  submitInterviewFeedback(
+    taskId: number,
+    payload: { questionId: number; score: number; feedbackType: string; notes: string }
+  ) {
+    return request<SubmitInterviewFeedbackResult>(`/api/matches/${taskId}/feedback`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
   },
   getMatchGraph(taskId: number) {
     return request<MatchEvidenceGraph>(`/api/matches/${taskId}/graph`);

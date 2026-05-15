@@ -209,10 +209,52 @@ export type MatchDimensionScore = {
 };
 
 export type MatchInterviewQuestion = {
+  questionId?: number;
   type: string;
   question: string;
   target: string;
   difficulty: string;
+  sourceRisk?: string;
+};
+
+export type InterviewFeedbackSummary = {
+  feedbackCount: number;
+  averageScore: number;
+  confidenceDelta: number;
+  adjustedMatchLevel: string;
+  adjustedRecommendation: string;
+  note: string;
+};
+
+export type InterviewFeedbackDetail = {
+  feedbackId: number;
+  questionId: number;
+  score: number;
+  feedbackType: string;
+  notes?: string | null;
+  confidenceDelta: number;
+  createTime: string;
+  updateTime: string;
+};
+
+export type InterviewQuestionItem = {
+  questionId: number;
+  type: string;
+  question: string;
+  target: string;
+  difficulty: string;
+  sourceRisk?: string | null;
+  feedback?: InterviewFeedbackDetail | null;
+};
+
+export type SubmitInterviewFeedbackResult = {
+  taskId: number;
+  questionId: number;
+  feedbackId: number;
+  confidence: number;
+  matchLevel: string;
+  recommendation: string;
+  feedbackSummary?: InterviewFeedbackSummary | null;
 };
 
 export type MatchReport = {
@@ -225,12 +267,17 @@ export type MatchReport = {
   confidence: number;
   matchLevel: string;
   recommendation: string;
+  baseConfidence?: number | null;
+  baseMatchLevel?: string | null;
+  baseRecommendation?: string | null;
   summary: string;
   dimensionScores: MatchDimensionScore[];
+  baseDimensionScores?: MatchDimensionScore[] | null;
   strengths: string[];
   risks: string[];
   suggestions: string[];
   interviewQuestions: MatchInterviewQuestion[];
+  feedbackSummary?: InterviewFeedbackSummary | null;
 };
 
 export type EvidenceGraphNode = {
@@ -257,6 +304,7 @@ export type EvidenceGraphChain = {
   status: string;
   risk?: string | null;
   question?: string | null;
+  feedback?: string | null;
 };
 
 export type MatchEvidenceGraph = {

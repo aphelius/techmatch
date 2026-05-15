@@ -45,11 +45,11 @@ TechMatch 面向技术招聘场景，帮助招聘方完成从简历解析、岗�
 - Evidence Verification 证据核验
 - 最终报告查询接口
 - 前端 `匹配分析 / 时间线 / 报告` 三页真实联调
+- Evidence Graph 图谱查询
+- 面试反馈回流
 
 ### 进行中 / 待扩展
 
-- Evidence Graph 图谱查询
-- 面试反馈回流
 - 报告持久化拆表
 - 更完整的评分类与图谱节点模型
 
@@ -296,7 +296,7 @@ LLM_EMBEDDING_MODEL
 - [x] Evidence Verification
 - [x] 匹配报告查询
 - [x] Evidence Graph
-- [ ] Interview Feedback Loop
+- [x] Interview Feedback Loop
 - [ ] 报告拆表与持久化增强
 - [ ] Docker 一键全栈启动优化
 

@@ -5,7 +5,7 @@ import { api } from "../services/api";
 import type { MatchEvidenceGraph, MatchTask } from "../types/api";
 
 function chainTone(status: string) {
-  if (status.includes("强") || status.includes("MATCHED")) return "success" as const;
+  if (status.includes("强匹配") || status.includes("MATCHED")) return "success" as const;
   if (status.includes("部分")) return "warning" as const;
   if (status.includes("缺失")) return "danger" as const;
   return "info" as const;
@@ -45,7 +45,7 @@ export function EvidenceGraphPage() {
   return (
     <SectionCard
       title="证据图谱"
-      subtitle="用真实图谱链路展示岗位要求、简历证据、风险点与面试验证问题"
+      subtitle="真实展示岗位要求、简历证据、风险点、面试问题与反馈回流之间的关系"
       action={
         task ? (
           <button className="secondary-button" type="button" onClick={() => navigate(`/reports?taskId=${task.taskId}`)}>
@@ -58,22 +58,22 @@ export function EvidenceGraphPage() {
         {error ? <div className="form-error">{error}</div> : null}
 
         {!taskId ? (
-          <EmptyState title="缺少任务编号" description="请从匹配分析页创建任务，或在 URL 中带上 `taskId` 后再查看证据图谱。" />
+          <EmptyState title="缺少任务编号" description="请从匹配分析页创建任务，或在 URL 中带上 taskId 后再查看证据图谱。" />
         ) : loading ? (
           <Badge tone="info">加载中</Badge>
         ) : !graph || graph.chains.length === 0 ? (
-          <EmptyState title="暂无图谱数据" description="当前任务还没有生成证据图谱，可能任务尚未执行完成。" />
+          <EmptyState title="暂无图谱数据" description="当前任务还没有生成图谱，可能是任务尚未执行完成。" />
         ) : (
           <>
             <div className="status-row">
               <div>
                 <div className="table-title">任务 #{graph.taskId}</div>
                 <div className="table-meta">
-                  节点 {graph.nodes.length} 个 · 边 {graph.edges.length} 条 · 当前状态 {task?.status || "-"}
+                  节点 {graph.nodes.length} 个 · 连边 {graph.edges.length} 条 · 当前状态 {task?.status || "-"}
                 </div>
               </div>
-              <button className="secondary-button" type="button" onClick={() => navigate(`/timeline?taskId=${graph.taskId}`)}>
-                查看时间线
+              <button className="secondary-button" type="button" onClick={() => navigate(`/feedback?taskId=${graph.taskId}`)}>
+                进入面试反馈
               </button>
             </div>
 
@@ -96,6 +96,7 @@ export function EvidenceGraphPage() {
                   </div>
                   <strong>{chain.risk || "当前没有额外风险提示"}</strong>
                   <p>{chain.question || "当前没有关联的面试验证问题"}</p>
+                  <div className="table-meta">{chain.feedback || "还没有提交对应的面试反馈"}</div>
                 </div>
               </div>
             ))}

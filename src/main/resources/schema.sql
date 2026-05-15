@@ -158,3 +158,43 @@ CREATE TABLE IF NOT EXISTS evidence_edge (
 
 CREATE INDEX IF NOT EXISTS idx_evidence_edge_task_id ON evidence_edge (task_id);
 CREATE INDEX IF NOT EXISTS idx_evidence_edge_type ON evidence_edge (edge_type);
+
+CREATE TABLE IF NOT EXISTS interview_question (
+    id BIGSERIAL PRIMARY KEY,
+    task_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    question_type VARCHAR(64) NOT NULL,
+    target VARCHAR(255) NOT NULL,
+    question_text TEXT NOT NULL,
+    difficulty VARCHAR(32) NOT NULL,
+    source_risk VARCHAR(255),
+    create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_interview_question_task FOREIGN KEY (task_id) REFERENCES agent_task (id),
+    CONSTRAINT fk_interview_question_user FOREIGN KEY (user_id) REFERENCES app_user (id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_interview_question_task_id ON interview_question (task_id);
+CREATE INDEX IF NOT EXISTS idx_interview_question_user_id ON interview_question (user_id);
+CREATE INDEX IF NOT EXISTS idx_interview_question_type ON interview_question (question_type);
+
+CREATE TABLE IF NOT EXISTS interview_feedback (
+    id BIGSERIAL PRIMARY KEY,
+    task_id BIGINT NOT NULL,
+    question_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    score INT NOT NULL,
+    feedback_type VARCHAR(64) NOT NULL,
+    notes TEXT,
+    confidence_delta DECIMAL(8, 4) NOT NULL DEFAULT 0,
+    create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_interview_feedback_task FOREIGN KEY (task_id) REFERENCES agent_task (id),
+    CONSTRAINT fk_interview_feedback_question FOREIGN KEY (question_id) REFERENCES interview_question (id),
+    CONSTRAINT fk_interview_feedback_user FOREIGN KEY (user_id) REFERENCES app_user (id)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS uk_interview_feedback_question_user
+    ON interview_feedback (question_id, user_id);
+CREATE INDEX IF NOT EXISTS idx_interview_feedback_task_id ON interview_feedback (task_id);
+CREATE INDEX IF NOT EXISTS idx_interview_feedback_user_id ON interview_feedback (user_id);

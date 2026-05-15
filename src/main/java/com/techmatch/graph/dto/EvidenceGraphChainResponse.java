@@ -11,4 +11,5 @@ public class EvidenceGraphChainResponse {
     String status;
     String risk;
     String question;
+    String feedback;
 }

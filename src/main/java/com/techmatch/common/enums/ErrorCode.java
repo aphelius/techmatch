@@ -22,7 +22,8 @@ public enum ErrorCode {
     RESUME_PARSE_FAILED(10009, "resume parse failed"),
     JOB_NOT_FOUND(10010, "job description not found"),
     AGENT_TASK_NOT_FOUND(10011, "agent task not found"),
-    MATCH_REPORT_NOT_FOUND(10012, "match report not found");
+    MATCH_REPORT_NOT_FOUND(10012, "match report not found"),
+    INTERVIEW_QUESTION_NOT_FOUND(10013, "interview question not found");
 
     private final Integer code;
     private final String message;
