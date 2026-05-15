@@ -3,6 +3,7 @@ package com.techmatch.match.controller;
 import com.techmatch.common.response.ApiResponse;
 import com.techmatch.match.dto.CreateMatchRequest;
 import com.techmatch.match.dto.CreateMatchResponse;
+import com.techmatch.match.dto.MatchEvidenceGraphResponse;
 import com.techmatch.match.dto.MatchReportResponse;
 import com.techmatch.match.service.MatchService;
 import com.techmatch.task.dto.AgentTaskResponse;
@@ -52,5 +53,11 @@ public class MatchController {
     @Operation(summary = "Get match report", description = "Query current user's final match report")
     public ApiResponse<MatchReportResponse> getReport(@PathVariable Long taskId) {
         return ApiResponse.success(matchService.getReport(taskId));
+    }
+
+    @GetMapping("/{taskId}/graph")
+    @Operation(summary = "Get evidence graph", description = "Query current user's evidence graph")
+    public ApiResponse<MatchEvidenceGraphResponse> getEvidenceGraph(@PathVariable Long taskId) {
+        return ApiResponse.success(matchService.getEvidenceGraph(taskId));
     }
 }

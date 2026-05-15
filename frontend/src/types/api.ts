@@ -232,3 +232,36 @@ export type MatchReport = {
   suggestions: string[];
   interviewQuestions: MatchInterviewQuestion[];
 };
+
+export type EvidenceGraphNode = {
+  nodeId: number;
+  nodeType: string;
+  nodeKey: string;
+  title: string;
+  content?: string | null;
+  status?: string | null;
+  metadataJson?: string | null;
+};
+
+export type EvidenceGraphEdge = {
+  edgeId: number;
+  fromNodeId: number;
+  toNodeId: number;
+  edgeType: string;
+  metadataJson?: string | null;
+};
+
+export type EvidenceGraphChain = {
+  requirement: string;
+  evidence?: string | null;
+  status: string;
+  risk?: string | null;
+  question?: string | null;
+};
+
+export type MatchEvidenceGraph = {
+  taskId: number;
+  nodes: EvidenceGraphNode[];
+  edges: EvidenceGraphEdge[];
+  chains: EvidenceGraphChain[];
+};

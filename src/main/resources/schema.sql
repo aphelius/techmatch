@@ -123,3 +123,38 @@ CREATE TABLE IF NOT EXISTS agent_timeline_event (
 
 CREATE INDEX IF NOT EXISTS idx_agent_timeline_event_task_id ON agent_timeline_event (task_id);
 CREATE INDEX IF NOT EXISTS idx_agent_timeline_event_status ON agent_timeline_event (status);
+
+CREATE TABLE IF NOT EXISTS evidence_node (
+    id BIGSERIAL PRIMARY KEY,
+    task_id BIGINT NOT NULL,
+    user_id BIGINT NOT NULL,
+    node_type VARCHAR(64) NOT NULL,
+    node_key VARCHAR(255) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    content TEXT,
+    status VARCHAR(32),
+    metadata_json TEXT,
+    create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_evidence_node_task FOREIGN KEY (task_id) REFERENCES agent_task (id),
+    CONSTRAINT fk_evidence_node_user FOREIGN KEY (user_id) REFERENCES app_user (id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_evidence_node_task_id ON evidence_node (task_id);
+CREATE INDEX IF NOT EXISTS idx_evidence_node_user_id ON evidence_node (user_id);
+CREATE INDEX IF NOT EXISTS idx_evidence_node_type ON evidence_node (node_type);
+
+CREATE TABLE IF NOT EXISTS evidence_edge (
+    id BIGSERIAL PRIMARY KEY,
+    task_id BIGINT NOT NULL,
+    from_node_id BIGINT NOT NULL,
+    to_node_id BIGINT NOT NULL,
+    edge_type VARCHAR(64) NOT NULL,
+    metadata_json TEXT,
+    create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_evidence_edge_task FOREIGN KEY (task_id) REFERENCES agent_task (id),
+    CONSTRAINT fk_evidence_edge_from FOREIGN KEY (from_node_id) REFERENCES evidence_node (id),
+    CONSTRAINT fk_evidence_edge_to FOREIGN KEY (to_node_id) REFERENCES evidence_node (id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_evidence_edge_task_id ON evidence_edge (task_id);
+CREATE INDEX IF NOT EXISTS idx_evidence_edge_type ON evidence_edge (edge_type);

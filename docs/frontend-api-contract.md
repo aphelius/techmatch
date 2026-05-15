@@ -486,6 +486,51 @@ Response `data`:
 }
 ```
 
+### `GET /api/matches/{taskId}/graph`
+
+Headers:
+
+```http
+Authorization: Bearer <accessToken>
+```
+
+Response `data`:
+
+```json
+{
+  "taskId": 301,
+  "nodes": [
+    {
+      "nodeId": 1,
+      "nodeType": "JD_REQUIREMENT",
+      "nodeKey": "jd:kubernetes",
+      "title": "kubernetes",
+      "content": "kubernetes",
+      "status": null,
+      "metadataJson": null
+    }
+  ],
+  "edges": [
+    {
+      "edgeId": 11,
+      "fromNodeId": 1,
+      "toNodeId": 3,
+      "edgeType": "MISSING_EVIDENCE",
+      "metadataJson": "{\"reason\":\"未找到绑定到简历的有效证据\"}"
+    }
+  ],
+  "chains": [
+    {
+      "requirement": "kubernetes",
+      "evidence": null,
+      "status": "缺失证据",
+      "risk": "岗位要求“kubernetes”缺少可靠简历证据，需转为面试验证问题",
+      "question": "请结合具体项目说明：岗位要求“kubernetes”缺少可靠简历证据，需转为面试验证问题"
+    }
+  ]
+}
+```
+
 ## Frontend Integration Suggestions
 
 - Store `accessToken` after login and attach it through an HTTP interceptor.

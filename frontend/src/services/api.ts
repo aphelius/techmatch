@@ -4,6 +4,7 @@ import type {
   AuthTokenResponse,
   AuthUser,
   InfraStatus,
+  MatchEvidenceGraph,
   MatchCreateResult,
   MatchReport,
   MatchTask,
@@ -128,5 +129,8 @@ export const api = {
   },
   getMatchReport(taskId: number) {
     return request<MatchReport>(`/api/matches/${taskId}/report`);
+  },
+  getMatchGraph(taskId: number) {
+    return request<MatchEvidenceGraph>(`/api/matches/${taskId}/graph`);
   }
 };

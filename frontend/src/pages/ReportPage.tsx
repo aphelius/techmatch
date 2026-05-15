@@ -177,6 +177,9 @@ export function ReportPage() {
               <button className="secondary-button" type="button" onClick={() => navigate(`/timeline?taskId=${taskId}`)}>
                 查看 Agent 时间线
               </button>
+              <button className="secondary-button" type="button" onClick={() => navigate(`/evidence-graph?taskId=${taskId}`)}>
+                查看证据图谱
+              </button>
             </div>
           ) : (
             <EmptyState title="暂无摘要" description="任务完成后，这里会显示真实报告的总分、等级与摘要。" />

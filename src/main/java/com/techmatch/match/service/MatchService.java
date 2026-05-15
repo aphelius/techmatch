@@ -7,10 +7,13 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.techmatch.auth.security.LoginUserContext;
 import com.techmatch.common.enums.ErrorCode;
 import com.techmatch.common.exception.BizException;
+import com.techmatch.graph.dto.EvidenceGraphResponse;
+import com.techmatch.graph.service.EvidenceGraphService;
 import com.techmatch.job.entity.JobDescriptionEntity;
 import com.techmatch.job.mapper.JobDescriptionMapper;
 import com.techmatch.match.dto.CreateMatchRequest;
 import com.techmatch.match.dto.CreateMatchResponse;
+import com.techmatch.match.dto.MatchEvidenceGraphResponse;
 import com.techmatch.match.dto.MatchReportResponse;
 import com.techmatch.resume.entity.ResumeEntity;
 import com.techmatch.resume.mapper.ResumeMapper;
@@ -36,6 +39,7 @@ public class MatchService {
     private final AgentTaskService agentTaskService;
     private final AgentTimelineService agentTimelineService;
     private final MatchAgentOrchestrator matchAgentOrchestrator;
+    private final EvidenceGraphService evidenceGraphService;
 
     public CreateMatchResponse createMatchTask(CreateMatchRequest request) {
         Long userId = loginUserContext.getCurrentUserId();
@@ -95,6 +99,17 @@ public class MatchService {
                 .risks(report.getRisks())
                 .suggestions(report.getSuggestions())
                 .interviewQuestions(report.getInterviewQuestions())
+                .build();
+    }
+
+    public MatchEvidenceGraphResponse getEvidenceGraph(Long taskId) {
+        Long userId = loginUserContext.getCurrentUserId();
+        EvidenceGraphResponse graph = evidenceGraphService.getGraph(taskId, userId);
+        return MatchEvidenceGraphResponse.builder()
+                .taskId(graph.getTaskId())
+                .nodes(graph.getNodes())
+                .edges(graph.getEdges())
+                .chains(graph.getChains())
                 .build();
     }
 

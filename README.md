@@ -295,7 +295,7 @@ LLM_EMBEDDING_MODEL
 - [x] Hybrid Scoring
 - [x] Evidence Verification
 - [x] 匹配报告查询
-- [ ] Evidence Graph
+- [x] Evidence Graph
 - [ ] Interview Feedback Loop
 - [ ] 报告拆表与持久化增强
 - [ ] Docker 一键全栈启动优化
